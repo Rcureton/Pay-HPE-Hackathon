@@ -19,14 +19,14 @@ import java.net.URL;
  */
 public class Walmart {
 
-    double mPrice;
-    String walmartLookupUpc= "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=";
+    private double mPrice;
 
-    public Walmart() {
+    private static double price;
+    private static String walmartLookupUpc= "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=";
 
-    }
+    public Walmart(){}
 
-    private String getInputData(InputStream inputStream) throws IOException {
+    private static String getInputData(InputStream inputStream) throws IOException {
         StringBuilder stringBuilder= new StringBuilder();
         BufferedReader bufferedReader= new BufferedReader(new InputStreamReader(inputStream));
         String data;
@@ -38,7 +38,8 @@ public class Walmart {
 
         return stringBuilder.toString();
     }
-    public class WalmartAsyncTask extends AsyncTask<String,Void,Double> {
+
+    public static class WalmartAsyncTask extends AsyncTask<String,Void,Double> {
         String data= " ";
 
         @Override
@@ -56,21 +57,18 @@ public class Walmart {
             } catch (Throwable thr) {
                 thr.fillInStackTrace();
 
-
             }
             try {
-
                 JSONObject dataObject = new JSONObject(data);
-
                 JSONArray priceArray= dataObject.optJSONArray("items");
                 JSONObject item = priceArray.optJSONObject(0);
-                    mPrice = item.optDouble("salePrice");
+                    price = item.optDouble("salePrice");
 
             } catch (JSONException e) {
 
                 e.printStackTrace();
             }
-            return mPrice;
+            return price;
         }
 
         @Override
@@ -80,4 +78,11 @@ public class Walmart {
         }
     }
 
+    public double getmPrice() {
+        return mPrice;
+    }
+
+    public void setmPrice(double mPrice) {
+        this.mPrice = mPrice;
+    }
 }

@@ -11,7 +11,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.adi.ho.jackie.pricecomparisonapp.WalmartAPI.Walmart;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,7 +35,8 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private String mImageFullPathAndName = "";
     private String localImagePath = "";
     private static final int OPTIMIZED_LENGTH = 1024;
-
+    private TextView mWalmartComparison;
+    public String mUPCofProduct;
 
     private static final String API_KEY = "f3c5459e-f77d-40f6-b53f-43154e4559f9";
     HODClient hodClient = new HODClient(API_KEY, this);
@@ -43,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mWalmartComparison = (TextView)findViewById(R.id.walmartPriceComparison);
         CreateLocalImageFolder();
     }
 
@@ -52,9 +57,14 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             Log.i("Request completed", response);
             BarcodeRecognitionResponse resp = parser.ParseBarcodeRecognitionResponse(response);
             if (resp != null) {
-                String test = resp.barcode.get(0).text;
+                mUPCofProduct = resp.barcode.get(0).text;
+                Log.i("Response", "UPC IS: "+mUPCofProduct);
 
-                Log.i("Response", "UPC IS: "+test);
+                String walmartsPrice = "Product Unavailable";
+                Walmart.WalmartAsyncTask walPrice = new Walmart.WalmartAsyncTask();
+                try{walmartsPrice = walPrice.execute(mUPCofProduct).get().toString();}
+                catch(Throwable e){e.printStackTrace();}
+                mWalmartComparison.setText("Price at Walmart is: $" + walmartsPrice);
             }
         }
     }

@@ -9,10 +9,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.adi.ho.jackie.pricecomparisonapp.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
     <Button
         android:id="@+id/select_image"
         android:onClick="DoShowSelectImage"
@@ -26,4 +22,11 @@
         android:layout_height="wrap_content"
         android:text="Take Image"
         android:layout_below="@id/select_image"/>
+
+    <TextView
+        android:id="@+id/walmartPriceComparison"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"/>
+
 </RelativeLayout>

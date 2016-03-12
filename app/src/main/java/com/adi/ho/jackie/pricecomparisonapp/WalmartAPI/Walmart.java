@@ -20,12 +20,10 @@ import java.net.URL;
 public class Walmart {
 
     double mPrice;
-    String upc= " ";
-    String walmartLookupUpc= "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=035000521019";
+    String walmartLookupUpc= "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=";
 
     public Walmart() {
-        WalmartAsyncTask walmartAsyncTask= new WalmartAsyncTask();
-        walmartAsyncTask.execute(walmartLookupUpc);
+
     }
 
     private String getInputData(InputStream inputStream) throws IOException {
@@ -47,7 +45,7 @@ public class Walmart {
         protected Double doInBackground(String... urls) {
 
             try {
-                URL url = new URL(urls[0]);
+                URL url = new URL(walmartLookupUpc+urls[0]);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.connect();
 
@@ -67,7 +65,6 @@ public class Walmart {
                 JSONArray priceArray= dataObject.optJSONArray("items");
                 JSONObject item = priceArray.optJSONObject(0);
                     mPrice = item.optDouble("salePrice");
-                Log.v("****price",String.valueOf(mPrice));
 
             } catch (JSONException e) {
 

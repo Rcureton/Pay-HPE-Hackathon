@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     HODClient hodClient = new HODClient(API_KEY, this);
     HODResponseParser parser = new HODResponseParser();
     String hodApp = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,9 +49,12 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     @Override
     public void requestCompletedWithContent(String response) {
         if (hodApp.equals(HODApps.RECOGNIZE_BARCODES)) {
+            Log.i("Request completed", response);
             BarcodeRecognitionResponse resp = parser.ParseBarcodeRecognitionResponse(response);
             if (resp != null) {
                 String test = resp.barcode.get(0).text;
+
+                Log.i("Response", "UPC IS: "+test);
             }
         }
     }
@@ -64,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
 
     @Override
     public void onErrorOccurred(String errorMessage) {
+        Log.e("HP ERROR", "Error occured on api call");
 
     }
 

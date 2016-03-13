@@ -20,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -118,6 +119,13 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mListFromUpc = new ArrayList<>();
 
         mListView.setAdapter(mAdapter);
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
         CreateLocalImageFolder();
     }
 
@@ -159,8 +167,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(MainActivity.this, ReviewActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putStringArrayList(REVIEW_ARRAY_KEY, mReviews);
+                    intent.putExtra(REVIEW_ARRAY_KEY,mReviews);
                     startActivity(intent);
                 }
             });
@@ -396,8 +403,8 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
             mListFromUpc = walmartArrayList;
             mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
-             new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
-           // new WalmartReviewAsyncTask().execute(44465724);
+            // new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+            new WalmartReviewAsyncTask().execute(44465724);
         }
     }
 
@@ -535,6 +542,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+
                 return true;
             }
 

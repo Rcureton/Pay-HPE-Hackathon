@@ -80,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private static String walmartLookupUpc = "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=";
     private static String walmartReviewById1 = "http://api.walmartlabs.com/v1/reviews/";
     private static String walmartReviewById2 = "?format=json&apiKey=jcpk6chshjwn5nbq2khnrvm9";
+    private static String walmartLookupKeyword = "http://api.walmartlabs.com/v1/search?query=";
+    private static final String walmart_api_key ="&format=json&apiKey=5hbnkvrdvq3dafvfax34meez";
     private SearchView searchView;
     private ArrayList<String> mAutoCompleteList;
     private ArrayAdapter<String> mAdapter;
@@ -133,6 +135,10 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView text = (TextView) view.findViewById(android.R.id.text1);
+                String search =text.getText().toString();
+                System.out.println(search);
+                new WalmartKeywordAsyncTask().execute(search);
 
             }
         });
@@ -430,6 +436,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             mListFromUpc = walmartArrayList;
             mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
              new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+            mCard.setVisibility(View.VISIBLE);
             //new WalmartReviewAsyncTask().execute(44465724);
         }
     }
@@ -646,5 +653,58 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             }
         });
         return true;
+    }
+    public class WalmartKeywordAsyncTask extends AsyncTask<String, Void, ArrayList<Walmart>> {
+        String data = " ";
+        String price;
+        private ArrayList<Walmart> walmartList;
+
+        public WalmartKeywordAsyncTask() {
+            walmartList = new ArrayList<>();
+        }
+
+        @Override
+        protected ArrayList<Walmart> doInBackground(String... query) {
+
+            String searchKeyword =query[0];
+            searchKeyword = searchKeyword.replace(' ','+');
+            try {
+                URL url = new URL(walmartLookupKeyword + searchKeyword+walmart_api_key);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                InputStream inputStream = connection.getInputStream();
+                data = getInputData(inputStream);
+
+
+            } catch (Throwable thr) {
+                thr.fillInStackTrace();
+
+            }
+            try {
+                JSONObject dataObject = new JSONObject(data);
+                JSONArray priceArray = dataObject.optJSONArray("items");
+                JSONObject item = priceArray.optJSONObject(0);
+                Walmart walmart = new Walmart();
+                price = item.optString("salePrice", "Product Unavailable");
+                walmart.setmPrice(price);
+                walmart.setmItemId(item.getInt("itemId"));
+                walmartList.add(walmart);
+
+            } catch (JSONException e) {
+
+                e.printStackTrace();
+            }
+            return walmartList;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
+            mListFromUpc = walmartArrayList;
+            mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
+            new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+            mCard.setVisibility(View.VISIBLE);
+            //new WalmartReviewAsyncTask().execute(44465724);
+        }
     }
 }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -43,6 +44,7 @@ import hod.api.hodclient.HODClient;
 import hod.api.hodclient.IHODClientCallback;
 import hod.response.parser.BarcodeRecognitionResponse;
 import hod.response.parser.HODResponseParser;
+import hod.response.parser.SentimentAnalysisResponse;
 
 public class MainActivity extends AppCompatActivity implements IHODClientCallback {
     private static final int SELECT_PICTURE = 1;
@@ -100,37 +102,30 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
 
                 new WalmartAsyncTask().execute(mUPCofProduct);
 
-//
-//                String ebaysPrice = "Product Unavailable";
-//                Ebay.EbayAsyncTask ebayPrice = new Ebay.EbayAsyncTask();
-//                try{ebaysPrice = ebayPrice.execute(mUPCofProduct).get().toString();}
-//                catch(Throwable e){e.printStackTrace();}
-//                mEbayComparison.setText("Price on Ebay is: $" + ebaysPrice);
-
-//                int walmartIdForReview = 0;
-//                Walmart.WalmartIDAsyncTask walId = new Walmart.WalmartIDAsyncTask();
-//                try{walmartIdForReview = walId.execute(mUPCofProduct).get();}
-
-                //  catch(Throwable e){e.printStackTrace();}
-                if (!mReviews.isEmpty()) {
-                    mReviews.clear();
-                }
-
-
-                if (mReviews.size() > 0) {
-                    //    checkReviewsSentiment(mReviews);
-                    mButton.setVisibility(View.VISIBLE);
-                    mButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent intent = new Intent(MainActivity.this,ReviewActivity.class);
-                            Bundle bundle = new Bundle();
-                            bundle.putStringArrayList(REVIEW_ARRAY_KEY,mReviews);
-                            startActivity(intent);
-                        }
-                    });
+            }
+        } else if (hodApp.equals(HODApps.ANALYZE_SENTIMENT)){
+            Log.i("Request completed", response);
+            SentimentAnalysisResponse resp = parser.ParseSentimentAnalysisResponse(response);
+            if (resp != null){
+                if (resp.aggregate.score > 0.2) {
+                    mWalmartComparison.setTextColor(Color.GREEN);
+                } else if (resp.aggregate.score<=0.2 && resp.aggregate.score>=-0.2){
+                    mWalmartComparison.setTextColor(Color.GRAY);
+                } else {
+                    mWalmartComparison.setTextColor(Color.RED);
                 }
             }
+
+            mButton.setVisibility(View.VISIBLE);
+            mButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(MainActivity.this, ReviewActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putStringArrayList(REVIEW_ARRAY_KEY, mReviews);
+                    startActivity(intent);
+                }
+            });
         }
     }
 
@@ -289,9 +284,17 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         StringBuilder str = new StringBuilder(allReviews.get(0) + " ");
         String reviewTogether = "";
         for (int i = 1; i < allReviews.size(); i++) {
-            str.append(allReviews.get(i) + " ");
+           str.append(allReviews.get(i) + " ");
         }
-        Log.d("review str", reviewTogether);
+        reviewTogether = str.toString();
+        getSentimentFromReviews(reviewTogether);
+    }
+
+    private void getSentimentFromReviews(String reviews){
+        hodApp = HODApps.ANALYZE_SENTIMENT;
+        Map<String,Object> params = new HashMap<>();
+        params.put("text",reviews);
+        hodClient.PostRequest(params, hodApp, HODClient.REQ_MODE.ASYNC);
     }
 
     public class WalmartAsyncTask extends AsyncTask<String, Void, ArrayList<Walmart>> {
@@ -340,7 +343,8 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
             mListFromUpc = walmartArrayList;
             mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
-            new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+           // new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+           new WalmartReviewAsyncTask().execute(44465724);
         }
     }
 
@@ -388,7 +392,15 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
 
         @Override
         protected void onPostExecute(ArrayList<String> s) {
+
+            if (!mReviews.isEmpty()) {
+                mReviews.clear();
+            }
             mReviews = s;
+
+            if (mReviews.size() > 0) {
+                checkReviewsSentiment(mReviews);
+            }
 
         }
     }

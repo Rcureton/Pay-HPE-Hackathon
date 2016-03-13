@@ -45,6 +45,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import hod.api.hodclient.HODApps;
@@ -127,6 +128,15 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             }
         });
         CreateLocalImageFolder();
+
+        Button button=(Button)findViewById(R.id.maps);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent= new Intent(MainActivity.this,GooglePlaces.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -137,14 +147,18 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             BarcodeRecognitionResponse resp = parser.ParseBarcodeRecognitionResponse(response);
 
             if (resp != null) {
-                mUPCofProduct = resp.barcode.get(0).text.substring(1);
-                Log.i("Response", "UPC IS: " + mUPCofProduct);
+                if (resp.barcode.size()>1){
+                        new WalmartMultiBarAsyncTask().execute(resp.barcode);
 
-                String walmartsPrice = "Product Unavailable";
+                } else {
+                    mUPCofProduct = resp.barcode.get(0).text.substring(1);
+                    Log.i("Response", "UPC IS: " + mUPCofProduct);
 
-                new WalmartAsyncTask().execute(mUPCofProduct);
-                new EbayAsyncTask().execute(mUPCofProduct);
+                    String walmartsPrice = "Product Unavailable";
 
+                    new WalmartAsyncTask().execute(mUPCofProduct);
+                    new EbayAsyncTask().execute(mUPCofProduct);
+                }
             }
         } else if (hodApp.equals(HODApps.ANALYZE_SENTIMENT)) {
             Log.i("Request completed", response);
@@ -405,6 +419,65 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
             // new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
             new WalmartReviewAsyncTask().execute(44465724);
+        }
+    }
+    public class WalmartMultiBarAsyncTask extends AsyncTask<List<BarcodeRecognitionResponse.Barcode>, Void, ArrayList<Walmart>> {
+        String data = " ";
+        String price;
+        private ArrayList<Walmart> walmartList;
+        private List<BarcodeRecognitionResponse.Barcode> barcodeList;
+
+        public WalmartMultiBarAsyncTask() {
+            walmartList = new ArrayList<>();
+            barcodeList = new ArrayList<>();
+        }
+
+        @Override
+        protected ArrayList<Walmart> doInBackground(List<BarcodeRecognitionResponse.Barcode>... urls) {
+
+            barcodeList = urls[0];
+            for (BarcodeRecognitionResponse.Barcode barcode : barcodeList) {
+                try {
+                    URL url = new URL(walmartLookupUpc + barcode.text.substring(1));
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.connect();
+
+                    InputStream inputStream = connection.getInputStream();
+                    data = getInputData(inputStream);
+
+
+                } catch (Throwable thr) {
+                    thr.fillInStackTrace();
+                    continue;
+
+                }
+                try {
+                    JSONObject dataObject = new JSONObject(data);
+                    JSONArray priceArray = dataObject.optJSONArray("items");
+                    JSONObject item = priceArray.optJSONObject(0);
+                    Walmart walmart = new Walmart();
+                    price = item.optString("salePrice", "Product Unavailable");
+                    walmart.setmPrice(price);
+                    walmart.setmItemId(item.getInt("itemId"));
+                    walmartList.add(walmart);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+                if (walmartList != null && walmartList.size()>0 && walmartList.get(0) != null){
+                    return walmartList;
+                }
+            }
+            return walmartList;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
+            mListFromUpc = walmartArrayList;
+            mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
+             new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+            //new WalmartReviewAsyncTask().execute();
         }
     }
 

@@ -34,8 +34,14 @@
         <activity
             android:name=".ReviewActivity"
             android:label="@string/title_activity_review"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:parentActivityName=".MainActivity"></activity>
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBA4Up3P3T3VowASpRRhM_b1oocVGdcMuo" />
+
+        <activity android:name=".GooglePlaces"></activity>
     </application>
 
 </manifest>

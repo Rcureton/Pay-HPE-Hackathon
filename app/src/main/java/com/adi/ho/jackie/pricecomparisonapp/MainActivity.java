@@ -119,6 +119,8 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mAutoCompleteList = new ArrayList<>();
         mAdapter = new ArrayAdapter<String>(MainActivity.this,android.R.layout.simple_list_item_1,mAutoCompleteList);
         mCard = (CardView)findViewById(R.id.xmlPriceComparison);
+
+        mToolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
         setSupportActionBar(mToolbar);
         mActionbar = getSupportActionBar();
         mActionbar.setTitle("Jackie's Price Hooo");
@@ -519,7 +521,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
 
             } catch (Throwable thr) {
                 thr.fillInStackTrace();
-git
+
             }
             try {
                 JSONObject dataObject = new JSONObject(JSONdata);

@@ -9,15 +9,26 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
+
 import android.support.design.widget.FloatingActionButton;
+
+import android.support.v4.view.MenuItemCompat;
+
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,11 +50,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import hod.api.hodclient.HODApps;
 import hod.api.hodclient.HODClient;
 import hod.api.hodclient.IHODClientCallback;
+import hod.response.parser.AutoCompleteResponse;
 import hod.response.parser.BarcodeRecognitionResponse;
 import hod.response.parser.HODResponseParser;
 import hod.response.parser.SentimentAnalysisResponse;
@@ -67,6 +80,10 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private static String walmartLookupUpc = "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=";
     private static String walmartReviewById1 = "http://api.walmartlabs.com/v1/reviews/";
     private static String walmartReviewById2 = "?format=json&apiKey=jcpk6chshjwn5nbq2khnrvm9";
+    private SearchView searchView;
+    private ArrayList<String> mAutoCompleteList;
+    private ArrayAdapter<String> mAdapter;
+    private ListView mListView;
 
     private static String ebayLookupUpc = "http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByProduct" +
             "&SERVICE-VERSION=1.0.0" +
@@ -98,6 +115,9 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mEbayComparison = (TextView) findViewById(R.id.ebayPriceComparison);
         mToolbar = (Toolbar) findViewById(R.id.maintoolbar);
         mButton = (Button) findViewById(R.id.reviewsButton);
+        mListView = (ListView)findViewById(R.id.suggestion_list);
+        mAutoCompleteList = new ArrayList<>();
+        mAdapter = new ArrayAdapter<String>(MainActivity.this,android.R.layout.simple_list_item_1,mAutoCompleteList);
         mCard = (CardView)findViewById(R.id.xmlPriceComparison);
         setSupportActionBar(mToolbar);
         mActionbar = getSupportActionBar();
@@ -105,6 +125,15 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mActionbar.setHomeButtonEnabled(true);
         mReviews = new ArrayList<>();
         mListFromUpc = new ArrayList<>();
+
+        mListView.setAdapter(mAdapter);
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
         CreateLocalImageFolder();
 
         FloatingActionButton button=(FloatingActionButton)findViewById(R.id.maps);
@@ -125,15 +154,21 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             BarcodeRecognitionResponse resp = parser.ParseBarcodeRecognitionResponse(response);
 
             if (resp != null) {
-                mUPCofProduct = resp.barcode.get(0).text.substring(1);
-                Log.i("Response", "UPC IS: " + mUPCofProduct);
+                if (resp.barcode.size()>1){
+                        new WalmartMultiBarAsyncTask().execute(resp.barcode);
 
-                String walmartsPrice = "Product Unavailable";
+                } else {
+                    mUPCofProduct = resp.barcode.get(0).text.substring(1);
+                    Log.i("Response", "UPC IS: " + mUPCofProduct);
 
+                    String walmartsPrice = "Product Unavailable";
                 new WalmartAsyncTask().execute(mUPCofProduct);
                 new EbayAsyncTask().execute(mUPCofProduct);
                 mCard.setVisibility(View.VISIBLE);
 
+                    new WalmartAsyncTask().execute(mUPCofProduct);
+                    new EbayAsyncTask().execute(mUPCofProduct);
+                }
             }
         } else if (hodApp.equals(HODApps.ANALYZE_SENTIMENT)) {
             Log.i("Request completed", response);
@@ -156,11 +191,17 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(MainActivity.this, ReviewActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putStringArrayList(REVIEW_ARRAY_KEY, mReviews);
+                    intent.putExtra(REVIEW_ARRAY_KEY,mReviews);
                     startActivity(intent);
                 }
             });
+        } else if (hodApp.equals(HODApps.AUTO_COMPLETE)){
+            AutoCompleteResponse resp = parser.ParseAutoCompleteResponse(response);
+            if (resp.words != null && !resp.words.isEmpty()){
+                mAutoCompleteList.clear();
+                mAutoCompleteList.addAll(resp.words);
+                mAdapter.notifyDataSetChanged();
+            }
         }
     }
 
@@ -175,6 +216,13 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     public void onErrorOccurred(String errorMessage) {
         Log.e("HP ERROR", "Error occured on api call");
 
+    }
+
+    private void getListItemData(String query){
+        hodApp = HODApps.AUTO_COMPLETE;
+        Map<String,Object> params = new HashMap<>();
+        params.put("text", query);
+        hodClient.PostRequest(params, hodApp, HODClient.REQ_MODE.ASYNC);
     }
 
     // loading image part
@@ -379,8 +427,67 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
             mListFromUpc = walmartArrayList;
             mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
+            // new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+            new WalmartReviewAsyncTask().execute(44465724);
+        }
+    }
+    public class WalmartMultiBarAsyncTask extends AsyncTask<List<BarcodeRecognitionResponse.Barcode>, Void, ArrayList<Walmart>> {
+        String data = " ";
+        String price;
+        private ArrayList<Walmart> walmartList;
+        private List<BarcodeRecognitionResponse.Barcode> barcodeList;
+
+        public WalmartMultiBarAsyncTask() {
+            walmartList = new ArrayList<>();
+            barcodeList = new ArrayList<>();
+        }
+
+        @Override
+        protected ArrayList<Walmart> doInBackground(List<BarcodeRecognitionResponse.Barcode>... urls) {
+
+            barcodeList = urls[0];
+            for (BarcodeRecognitionResponse.Barcode barcode : barcodeList) {
+                try {
+                    URL url = new URL(walmartLookupUpc + barcode.text.substring(1));
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.connect();
+
+                    InputStream inputStream = connection.getInputStream();
+                    data = getInputData(inputStream);
+
+
+                } catch (Throwable thr) {
+                    thr.fillInStackTrace();
+                    continue;
+
+                }
+                try {
+                    JSONObject dataObject = new JSONObject(data);
+                    JSONArray priceArray = dataObject.optJSONArray("items");
+                    JSONObject item = priceArray.optJSONObject(0);
+                    Walmart walmart = new Walmart();
+                    price = item.optString("salePrice", "Product Unavailable");
+                    walmart.setmPrice(price);
+                    walmart.setmItemId(item.getInt("itemId"));
+                    walmartList.add(walmart);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+                if (walmartList != null && walmartList.size()>0 && walmartList.get(0) != null){
+                    return walmartList;
+                }
+            }
+            return walmartList;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
+            mListFromUpc = walmartArrayList;
+            mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
              new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
-           // new WalmartReviewAsyncTask().execute(44465724);
+            //new WalmartReviewAsyncTask().execute();
         }
     }
 
@@ -507,5 +614,30 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             }
 
         }
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu_review, menu);
+
+        final MenuItem item = menu.findItem(R.id.action_search);
+        searchView = (SearchView) MenuItemCompat.getActionView(item);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.length() >3) {
+                    getListItemData(newText);
+                    return true;
+                }
+                return false;
+            }
+        });
+        return true;
     }
 }

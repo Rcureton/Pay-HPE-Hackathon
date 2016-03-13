@@ -423,8 +423,8 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
             mListFromUpc = walmartArrayList;
             mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
-            // new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
-            new WalmartReviewAsyncTask().execute(44465724);
+             new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+            //new WalmartReviewAsyncTask().execute(44465724);
         }
     }
     public class WalmartMultiBarAsyncTask extends AsyncTask<List<BarcodeRecognitionResponse.Barcode>, Void, ArrayList<Walmart>> {
@@ -432,6 +432,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         String price;
         private ArrayList<Walmart> walmartList;
         private List<BarcodeRecognitionResponse.Barcode> barcodeList;
+        String barcodeUPC="";
 
         public WalmartMultiBarAsyncTask() {
             walmartList = new ArrayList<>();
@@ -444,6 +445,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             barcodeList = urls[0];
             for (BarcodeRecognitionResponse.Barcode barcode : barcodeList) {
                 try {
+                    barcodeUPC = barcode.text.substring(1);
                     URL url = new URL(walmartLookupUpc + barcode.text.substring(1));
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.connect();
@@ -465,6 +467,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                     price = item.optString("salePrice", "Product Unavailable");
                     walmart.setmPrice(price);
                     walmart.setmItemId(item.getInt("itemId"));
+                    walmart.setmUPC(barcodeUPC);
                     walmartList.add(walmart);
 
                 } catch (JSONException e) {
@@ -483,6 +486,8 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             mListFromUpc = walmartArrayList;
             mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
              new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+            new EbayAsyncTask().execute(mListFromUpc.get(0).getmUPC());
+            mCard.setVisibility(View.VISIBLE);
             //new WalmartReviewAsyncTask().execute();
         }
     }

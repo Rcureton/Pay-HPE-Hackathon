@@ -23,13 +23,14 @@ public class Walmart {
 
     private String mPrice;
     private int mItemId;
+    private String mUPC;
 
 
     private static ArrayList<String> reviews;
 
 
     public Walmart(
-    ){
+    ) {
     }
 
     public static ArrayList<String> getReviews() {
@@ -41,9 +42,12 @@ public class Walmart {
     }
 
 
-
-
-
+    public void setmUPC(String mUPC) {
+        this.mUPC = mUPC;
+    }
+    public String getmUPC(){
+        return mUPC;
+    }
 
     public String getmPrice() {
         return mPrice;

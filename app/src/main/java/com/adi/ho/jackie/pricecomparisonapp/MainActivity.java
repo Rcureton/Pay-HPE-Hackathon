@@ -34,6 +34,11 @@ import android.widget.Toast;
 
 import com.adi.ho.jackie.pricecomparisonapp.EbayAPI.Ebay;
 import com.adi.ho.jackie.pricecomparisonapp.WalmartAPI.Walmart;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -67,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private String mImageFullPathAndName = "";
     private String localImagePath = "";
     private static final int OPTIMIZED_LENGTH = 1024;
+    int PLACE_PICKER_REQUEST = 3;
 
     private TextView mWalmartComparison, mEbayComparison;
     private Toolbar mToolbar;
@@ -148,8 +154,15 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent= new Intent(MainActivity.this,GooglePlaces.class);
-                startActivity(intent);
+                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
+
+                try {
+                    startActivityForResult(builder.build(MainActivity.this), PLACE_PICKER_REQUEST);
+                } catch (GooglePlayServicesRepairableException e) {
+                    e.printStackTrace();
+                } catch (GooglePlayServicesNotAvailableException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -366,9 +379,36 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                     // let save the new image to our local folder
                     mImageFullPathAndName = SaveImage(mCurrentSelectedBitmap);
                     callHODAPI();
+                }else  if (requestCode == PLACE_PICKER_REQUEST) {
+                    if (resultCode == RESULT_OK) {
+                        Place place = PlacePicker.getPlace(data, this);
+                        String uriString= getUriString(place);
+                        Uri googleMaps= Uri.parse(uriString);
+                        Intent mapIntent= new Intent(Intent.ACTION_VIEW,googleMaps);
+                        mapIntent.setPackage("com.google.android.apps.maps");
+
+                        if(mapIntent.resolveActivity(getPackageManager()) !=null){
+                            startActivity(mapIntent);
+                        }else{
+                            Toast.makeText(MainActivity.this, "No Maps Installed", Toast.LENGTH_SHORT).show();
+                        }
+                    }
                 }
             }
         }
+
+    }
+    private String getUriString(Place place) {
+        LatLng latLong= place.getLatLng();
+        String lat= String.valueOf(latLong.latitude);
+        String lon= String.valueOf(latLong.longitude);
+        String address =place.getAddress().toString();
+        String name= place.getName().toString();
+        String encodedAddress= Uri.encode(name+", "+address);
+
+        String uriString= "geo:"+lat+","+lon+"?q="+encodedAddress;
+
+        return uriString;
     }
 
     private void checkReviewsSentiment(ArrayList<String> allReviews) {

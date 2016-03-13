@@ -87,7 +87,6 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:text="See Reviews"
-        android:layout_above="@id/maps"
         android:layout_margin="16dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"/>

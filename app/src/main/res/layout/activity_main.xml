@@ -20,13 +20,21 @@
         android:background="@color/colorPrimary"
         android:layout_height="?attr/actionBarSize"
         android:layout_width="match_parent"/>
+    <ListView
+        android:id="@+id/suggestion_list"
+        android:background="#00000000"
+        android:padding="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/maintoolbar"></ListView>
 
     <Button
         android:id="@+id/select_image"
         android:onClick="DoShowSelectImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/maintoolbar"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
         android:text="Load Image"/>
 
     <TextView

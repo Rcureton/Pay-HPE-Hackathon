@@ -9,13 +9,20 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,6 +49,7 @@ import java.util.Map;
 import hod.api.hodclient.HODApps;
 import hod.api.hodclient.HODClient;
 import hod.api.hodclient.IHODClientCallback;
+import hod.response.parser.AutoCompleteResponse;
 import hod.response.parser.BarcodeRecognitionResponse;
 import hod.response.parser.HODResponseParser;
 import hod.response.parser.SentimentAnalysisResponse;
@@ -64,6 +72,10 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private static String walmartLookupUpc = "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=";
     private static String walmartReviewById1 = "http://api.walmartlabs.com/v1/reviews/";
     private static String walmartReviewById2 = "?format=json&apiKey=jcpk6chshjwn5nbq2khnrvm9";
+    private SearchView searchView;
+    private ArrayList<String> mAutoCompleteList;
+    private ArrayAdapter<String> mAdapter;
+    private ListView mListView;
 
     private static String ebayLookupUpc = "http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByProduct" +
             "&SERVICE-VERSION=1.0.0" +
@@ -95,12 +107,17 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mEbayComparison = (TextView) findViewById(R.id.ebayPriceComparison);
         mToolbar = (Toolbar) findViewById(R.id.maintoolbar);
         mButton = (Button) findViewById(R.id.reviewsButton);
+        mListView = (ListView)findViewById(R.id.suggestion_list);
+        mAutoCompleteList = new ArrayList<>();
+        mAdapter = new ArrayAdapter<String>(MainActivity.this,android.R.layout.simple_list_item_1,mAutoCompleteList);
         setSupportActionBar(mToolbar);
         mActionbar = getSupportActionBar();
         mActionbar.setTitle("Jackie's Price Hooo");
         mActionbar.setHomeButtonEnabled(true);
         mReviews = new ArrayList<>();
         mListFromUpc = new ArrayList<>();
+
+        mListView.setAdapter(mAdapter);
         CreateLocalImageFolder();
     }
 
@@ -147,6 +164,13 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                     startActivity(intent);
                 }
             });
+        } else if (hodApp.equals(HODApps.AUTO_COMPLETE)){
+            AutoCompleteResponse resp = parser.ParseAutoCompleteResponse(response);
+            if (resp.words != null && !resp.words.isEmpty()){
+                mAutoCompleteList.clear();
+                mAutoCompleteList.addAll(resp.words);
+                mAdapter.notifyDataSetChanged();
+            }
         }
     }
 
@@ -161,6 +185,13 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     public void onErrorOccurred(String errorMessage) {
         Log.e("HP ERROR", "Error occured on api call");
 
+    }
+
+    private void getListItemData(String query){
+        hodApp = HODApps.AUTO_COMPLETE;
+        Map<String,Object> params = new HashMap<>();
+        params.put("text", query);
+        hodClient.PostRequest(params, hodApp, HODClient.REQ_MODE.ASYNC);
     }
 
     // loading image part
@@ -493,5 +524,29 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             }
 
         }
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu_review, menu);
+
+        final MenuItem item = menu.findItem(R.id.action_search);
+        searchView = (SearchView) MenuItemCompat.getActionView(item);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.length() >3) {
+                    getListItemData(newText);
+                    return true;
+                }
+                return false;
+            }
+        });
+        return true;
     }
 }

@@ -519,7 +519,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
 
             } catch (Throwable thr) {
                 thr.fillInStackTrace();
-
+git
             }
             try {
                 JSONObject dataObject = new JSONObject(JSONdata);

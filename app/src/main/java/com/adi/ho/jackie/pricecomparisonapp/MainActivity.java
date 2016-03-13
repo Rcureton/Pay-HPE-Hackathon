@@ -12,6 +12,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
@@ -57,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private Toolbar mToolbar;
     private ActionBar mActionbar;
     private Button mButton;
+    private CardView mCard;
     public String mUPCofProduct;
     public ArrayList<String> mReviews;
     private ArrayList<Walmart> mListFromUpc;
@@ -95,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mEbayComparison = (TextView) findViewById(R.id.ebayPriceComparison);
         mToolbar = (Toolbar) findViewById(R.id.maintoolbar);
         mButton = (Button) findViewById(R.id.reviewsButton);
+        mCard = (CardView)findViewById(R.id.xmlPriceComparison);
         setSupportActionBar(mToolbar);
         mActionbar = getSupportActionBar();
         mActionbar.setTitle("Jackie's Price Hooo");
@@ -128,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
 
                 new WalmartAsyncTask().execute(mUPCofProduct);
                 new EbayAsyncTask().execute(mUPCofProduct);
+                mCard.setVisibility(View.VISIBLE);
 
             }
         } else if (hodApp.equals(HODApps.ANALYZE_SENTIMENT)) {

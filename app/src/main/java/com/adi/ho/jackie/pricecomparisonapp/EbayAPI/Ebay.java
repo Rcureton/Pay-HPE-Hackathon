@@ -60,47 +60,7 @@ public class Ebay {
         return stringBuilder.toString();
     }
 
-    public static class EbayAsyncTask extends AsyncTask<String,Void,Double> {
-        String data= " ";
 
-        @Override
-        protected Double doInBackground(String... urls) {
-
-            try {
-                URL url = new URL(ebayLookupUpc+urls[0]);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
-
-                InputStream inputStream = connection.getInputStream();
-                data = getInputData(inputStream);
-
-
-            } catch (Throwable thr) {
-                thr.fillInStackTrace();
-
-            }
-            try {
-                JSONObject dataObject = new JSONObject(data);
-                JSONArray itemArray= dataObject.optJSONArray("findItemsByProductResponse");
-                JSONArray searchResult = itemArray.optJSONArray(3);
-                JSONArray itemArray2 = searchResult.optJSONArray(1);
-                JSONArray sellingStatusArray = itemArray2.optJSONArray(13);
-                JSONArray currentPriceArray = sellingStatusArray.optJSONArray(0);
-                JSONObject priceObject = currentPriceArray.optJSONObject(0);
-                price = priceObject.optDouble("__value__");
-
-            } catch (JSONException e) {
-
-                e.printStackTrace();
-            }
-            return price;
-        }
-
-        @Override
-        protected void onPostExecute(Double s) {
-            super.onPostExecute(s);
-        }
-    }
 
     public double getmPrice() {
         return mPrice;

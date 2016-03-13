@@ -21,155 +21,35 @@ import java.util.ArrayList;
  */
 public class Walmart {
 
-    private double mPrice;
+    private String mPrice;
     private int mItemId;
 
-    private static double price;
-    private static int id;
+
     private static ArrayList<String> reviews;
-    private static String walmartLookupUpc= "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=";
-    private static String walmartReviewById1= "http://api.walmartlabs.com/v1/reviews/";
-    private static String walmartReviewById2= "?format=json&apiKey=jcpk6chshjwn5nbq2khnrvm9";
 
-    public Walmart(){}
 
-    private static String getInputData(InputStream inputStream) throws IOException {
-        StringBuilder stringBuilder= new StringBuilder();
-        BufferedReader bufferedReader= new BufferedReader(new InputStreamReader(inputStream));
-        String data;
-
-        while ((data=bufferedReader.readLine()) !=null){
-            stringBuilder.append(data);
-        }
-        bufferedReader.close();
-
-        return stringBuilder.toString();
+    public Walmart(
+    ){
     }
 
-    public static class WalmartAsyncTask extends AsyncTask<String,Void,Double> {
-        String data= " ";
-
-        @Override
-        protected Double doInBackground(String... urls) {
-
-            try {
-                URL url = new URL(walmartLookupUpc+urls[0]);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
-
-                InputStream inputStream = connection.getInputStream();
-                data = getInputData(inputStream);
-
-
-            } catch (Throwable thr) {
-                thr.fillInStackTrace();
-
-            }
-            try {
-                JSONObject dataObject = new JSONObject(data);
-                JSONArray priceArray= dataObject.optJSONArray("items");
-                JSONObject item = priceArray.optJSONObject(0);
-                    price = item.optDouble("salePrice");
-
-            } catch (JSONException e) {
-
-                e.printStackTrace();
-            }
-            return price;
-        }
-
-        @Override
-        protected void onPostExecute(Double s) {
-            super.onPostExecute(s);
-
-        }
-    }
-    public static class WalmartIDAsyncTask extends AsyncTask<String,Void,Integer> {
-        String data= " ";
-
-        @Override
-        protected Integer doInBackground(String... urls) {
-
-            try {
-                URL url = new URL(walmartLookupUpc+urls[0]);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
-
-                InputStream inputStream = connection.getInputStream();
-                data = getInputData(inputStream);
-
-
-            } catch (Throwable thr) {
-                thr.fillInStackTrace();
-
-            }
-            try {
-                JSONObject dataObject = new JSONObject(data);
-                JSONArray priceArray= dataObject.optJSONArray("items");
-                JSONObject item = priceArray.optJSONObject(0);
-                id = item.optInt("itemId");
-
-            } catch (JSONException e) {
-
-                e.printStackTrace();
-            }
-            return id;
-        }
-
-        @Override
-        protected void onPostExecute(Integer s) {
-            super.onPostExecute(s);
-
-        }
+    public static ArrayList<String> getReviews() {
+        return reviews;
     }
 
-    public static class WalmartReviewAsyncTask extends AsyncTask<Integer,Void,ArrayList<String>> {
-        String JSONdata= " ";
-
-        @Override
-        protected ArrayList<String> doInBackground(Integer... id) {
-
-            try {
-                URL url = new URL(walmartReviewById1+id[0]+walmartReviewById2);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
-
-                InputStream inputStream = connection.getInputStream();
-                JSONdata = getInputData(inputStream);
-
-
-            } catch (Throwable thr) {
-                thr.fillInStackTrace();
-
-            }
-            try {
-                JSONObject dataObject = new JSONObject(JSONdata);
-                JSONArray reviewArray= dataObject.optJSONArray("reviews");
-                for (int x = 0; x<reviewArray.length(); x++){
-                    JSONObject item = reviewArray.optJSONObject(x);
-                    reviews.add(item.optString("reviewText",""));
-                }
-
-            } catch (JSONException e) {
-
-                e.printStackTrace();
-            }
-            return reviews;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<String> s) {
-            super.onPostExecute(s);
-
-        }
+    public static void setReviews(ArrayList<String> reviews) {
+        Walmart.reviews = reviews;
     }
 
 
-    public double getmPrice() {
+
+
+
+
+    public String getmPrice() {
         return mPrice;
     }
 
-    public void setmPrice(double mPrice) {
+    public void setmPrice(String mPrice) {
         this.mPrice = mPrice;
     }
 

@@ -58,9 +58,25 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     public String mUPCofProduct;
     public ArrayList<String> mReviews;
     private ArrayList<Walmart> mListFromUpc;
+    private static String productionAppID = "generala-comadiho-PRD-438ccaf50-460fbf19";
     private static String walmartLookupUpc = "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=";
     private static String walmartReviewById1 = "http://api.walmartlabs.com/v1/reviews/";
     private static String walmartReviewById2 = "?format=json&apiKey=jcpk6chshjwn5nbq2khnrvm9";
+    private static String ebayLookupUpc = "http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByProduct" +
+            "&SERVICE-VERSION=1.0.0" +
+            "&SECURITY-APPNAME=" + productionAppID +
+            "&RESPONSE-DATA-FORMAT=JSON" +
+            "&REST-PAYLOAD" +
+            "&paginationInput.entriesPerPage=2" +
+            "&productId.@type=UPC" +
+            "&productId=";
+
+    private static String ebayLookupKeyword = "http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByKeywords" +
+            "&SERVICE-VERSION=1.0.0" +
+            "&SECURITY-APPNAME=" + productionAppID +
+            "&RESPONSE-DATA-FORMAT=JSON" +
+            "&REST-PAYLOAD" +
+            "&keywords=";
 
     private static final String API_KEY = "f3c5459e-f77d-40f6-b53f-43154e4559f9";
     HODClient hodClient = new HODClient(API_KEY, this);
@@ -97,19 +113,23 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                 String walmartsPrice = "Product Unavailable";
 
                 new WalmartAsyncTask().execute(mUPCofProduct);
+                new EbayAsyncTask().execute(mUPCofProduct);
 
 
             }
-        } else if (hodApp.equals(HODApps.ANALYZE_SENTIMENT)){
+        } else if (hodApp.equals(HODApps.ANALYZE_SENTIMENT)) {
             Log.i("Request completed", response);
             SentimentAnalysisResponse resp = parser.ParseSentimentAnalysisResponse(response);
-            if (resp != null){
+            if (resp != null) {
                 if (resp.aggregate.score > 0.2) {
                     mWalmartComparison.setTextColor(Color.GREEN);
-                } else if (resp.aggregate.score<=0.2 && resp.aggregate.score>=-0.2){
+                    mEbayComparison.setTextColor(Color.GREEN);
+                } else if (resp.aggregate.score <= 0.2 && resp.aggregate.score >= -0.2) {
                     mWalmartComparison.setTextColor(Color.GRAY);
+                    mEbayComparison.setTextColor(Color.GRAY);
                 } else {
                     mWalmartComparison.setTextColor(Color.RED);
+                    mEbayComparison.setTextColor(Color.RED);
                 }
             }
         }
@@ -270,17 +290,18 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         StringBuilder str = new StringBuilder(allReviews.get(0) + " ");
         String reviewTogether = "";
         for (int i = 1; i < allReviews.size(); i++) {
-           str.append(allReviews.get(i) + " ");
+            str.append(allReviews.get(i) + " ");
         }
         reviewTogether = str.toString();
         getSentimentFromReviews(reviewTogether);
 
     }
-    private void getSentimentFromReviews(String reviews){
+
+    private void getSentimentFromReviews(String reviews) {
         hodApp = HODApps.ANALYZE_SENTIMENT;
-        Map<String,Object> params = new HashMap<>();
-        params.put("text",reviews);
-        hodClient.PostRequest(params,hodApp, HODClient.REQ_MODE.ASYNC);
+        Map<String, Object> params = new HashMap<>();
+        params.put("text", reviews);
+        hodClient.PostRequest(params, hodApp, HODClient.REQ_MODE.ASYNC);
     }
 
     public class WalmartAsyncTask extends AsyncTask<String, Void, ArrayList<Walmart>> {
@@ -329,8 +350,8 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
             mListFromUpc = walmartArrayList;
             mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
-           // new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
-           new WalmartReviewAsyncTask().execute(44465724);
+             new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+           // new WalmartReviewAsyncTask().execute(44465724);
         }
     }
 
@@ -402,5 +423,60 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         bufferedReader.close();
 
         return stringBuilder.toString();
+    }
+
+    public class EbayAsyncTask extends AsyncTask<String, Void, String> {
+        String data = " ";
+        String price = "";
+
+        @Override
+        protected String doInBackground(String... urls) {
+
+            try {
+                URL url = new URL(ebayLookupUpc + urls[0]);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                InputStream inputStream = connection.getInputStream();
+                data = getInputData(inputStream);
+
+
+            } catch (Throwable thr) {
+                thr.fillInStackTrace();
+
+            }
+            try {
+                JSONObject dataObject = new JSONObject(data);
+                JSONArray itemArray = dataObject.optJSONArray("findItemsByProductResponse");
+                JSONObject firstObject = itemArray.optJSONObject(0);
+                JSONArray searchResult = firstObject.optJSONArray("searchResult");
+                if (searchResult != null) {
+                    JSONObject firstObject1 = searchResult.optJSONObject(0);
+                    JSONArray itemArray2 = firstObject1.optJSONArray("item");
+                    JSONObject firstObject2 = itemArray2.optJSONObject(0);
+                    JSONArray sellingStatusArray = firstObject2.optJSONArray("sellingStatus");
+                    JSONObject firstObject3 = sellingStatusArray.optJSONObject(0);
+                    JSONArray currentPriceArray = firstObject3.optJSONArray("currentPrice");
+                    JSONObject priceObject = currentPriceArray.optJSONObject(0);
+
+                    price = priceObject.optString("__value__", "Product unavailable");
+                }
+
+            } catch (JSONException e) {
+
+                e.printStackTrace();
+            }
+            return price;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            if (s != null & s.length() > 0) {
+                mEbayComparison.setText("Price of Ebay is set at: $" + s);
+            } else {
+                mEbayComparison.setText("Price of item at Ebay: Product Unavailable");
+            }
+
+        }
     }
 }

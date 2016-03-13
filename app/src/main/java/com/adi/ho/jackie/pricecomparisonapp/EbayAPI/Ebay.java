@@ -60,53 +60,7 @@ public class Ebay {
         return stringBuilder.toString();
     }
 
-    public static class EbayAsyncTask extends AsyncTask<String,Void,Double> {
-        String data= " ";
 
-        @Override
-        protected Double doInBackground(String... urls) {
-
-            try {
-                URL url = new URL(ebayLookupUpc+urls[0]);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
-
-                InputStream inputStream = connection.getInputStream();
-                data = getInputData(inputStream);
-
-
-            } catch (Throwable thr) {
-                thr.fillInStackTrace();
-
-            }
-            try {
-                JSONObject dataObject = new JSONObject(data);
-                JSONArray itemArray= dataObject.optJSONArray("findItemsByProductResponse");
-                JSONObject firstObject = itemArray.optJSONObject(0);
-                JSONArray searchResult = firstObject.optJSONArray("searchResult");
-                if(searchResult!=null){
-                    JSONObject firstObject1 = searchResult.optJSONObject(0);
-                    JSONArray itemArray2 = firstObject1.optJSONArray("item");
-                    JSONObject firstObject2 = itemArray2.optJSONObject(0);
-                    JSONArray sellingStatusArray = firstObject2.optJSONArray("sellingStatus");
-                    JSONObject firstObject3 = sellingStatusArray.optJSONObject(0);
-                    JSONArray currentPriceArray = firstObject3.optJSONArray("currentPrice");
-                    JSONObject priceObject = currentPriceArray.optJSONObject(0);
-                    price = priceObject.optDouble("__value__");}
-                else {price = 0.0;}
-
-            } catch (JSONException e) {
-
-                e.printStackTrace();
-            }
-            return price;
-        }
-
-        @Override
-        protected void onPostExecute(Double s) {
-            super.onPostExecute(s);
-        }
-    }
 
     public double getmPrice() {
         return mPrice;

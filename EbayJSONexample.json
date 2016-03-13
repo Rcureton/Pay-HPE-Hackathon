@@ -1,0 +1,274 @@
+{
+    "findItemsByProductResponse": [
+        {
+            "ack": ["Success"],
+            "version": ["1.13.0"],
+            "timestamp": ["2016-03-12T22:45:58.424Z"],
+            "searchResult": [
+                {
+                    "@count": "2",
+                    "item": [
+                        {
+                            "itemId": ["301883862622"],
+                            "title": ["Apple iPod touch 6th Generation Space Gray (16 GB) (Latest Model) MKH62LL/A"],
+                            "globalId": ["EBAY-US"],
+                            "primaryCategory": [
+                                {
+                                    "categoryId": ["73839"],
+                                    "categoryName": ["iPods & MP3 Players"]
+                                }
+                            ],
+                            "galleryURL": ["http://thumbs3.ebaystatic.com/m/mKQTvpwWslHjgd5mU94kyUA/140.jpg"],
+                            "viewItemURL": ["http://www.ebay.com/itm/Apple-iPod-touch-6th-Generation-Space-Gray-16-GB-Latest-Model-MKH62LL-A-/301883862622"],
+                            "productId": [
+                                {
+                                    "@type": "ReferenceID",
+                                    "__value__": "216470852"
+                                }
+                            ],
+                            "paymentMethod": ["PayPal"],
+                            "autoPay": ["false"],
+                            "postalCode": ["90036"],
+                            "location": ["Los Angeles,CA,USA"],
+                            "country": ["US"],
+                            "shippingInfo": [
+                                {
+                                    "shippingType": ["Calculated"],
+                                    "shipToLocations": ["US","CA","GB","AU","AT","BE","FR","DE","IT","JP","ES",
+                                        "NL","CN","HK","MX","DK","RO","SK","BG","CZ","FI","HU","LV","LT","MT",
+                                        "EE","GR","PT","CY","SI","SE","KR","ID","ZA","TH","IE","PL","RU",
+                                        "IL","NZ"
+                                    ],
+                                    "expeditedShipping": ["true"],
+                                    "oneDayShippingAvailable": ["false"],
+                                    "handlingTime": ["3"]
+                                }
+                            ],
+                            "sellingStatus": [
+                                {
+                                    "currentPrice": [
+                                        {
+                                            "@currencyId": "USD",
+                                            "__value__": "147.5"
+                                        }
+                                    ],
+                                    "convertedCurrentPrice": [
+                                        {
+                                            "@currencyId": "USD",
+                                            "__value__": "147.5"
+                                        }
+                                    ],
+                                    "bidCount": [
+                                        "23"
+                                    ],
+                                    "sellingState": [
+                                        "Active"
+                                    ],
+                                    "timeLeft": [
+                                        "P0DT6H44M45S"
+                                    ]
+                                }
+                            ],
+                            "listingInfo": [
+                                {
+                                    "bestOfferEnabled": [
+                                        "false"
+                                    ],
+                                    "buyItNowAvailable": [
+                                        "false"
+                                    ],
+                                    "startTime": [
+                                        "2016-03-03T05:30:43.000Z"
+                                    ],
+                                    "endTime": [
+                                        "2016-03-13T05:30:43.000Z"
+                                    ],
+                                    "listingType": [
+                                        "Auction"
+                                    ],
+                                    "gift": [
+                                        "false"
+                                    ]
+                                }
+                            ],
+                            "returnsAccepted": [
+                                "false"
+                            ],
+                            "condition": [
+                                {
+                                    "conditionId": [
+                                        "1000"
+                                    ],
+                                    "conditionDisplayName": [
+                                        "New"
+                                    ]
+                                }
+                            ],
+                            "isMultiVariationListing": [
+                                "false"
+                            ],
+                            "topRatedListing": [
+                                "false"
+                            ]
+                        },
+                        {
+                            "itemId": [
+                                "172118216533"
+                            ],
+                            "title": [
+                                "Apple iPod Touch 6th Gen (Latest) Space Gray 16GB A1574 MP3 iOS Bundled USB Used"
+                            ],
+                            "globalId": [
+                                "EBAY-US"
+                            ],
+                            "primaryCategory": [
+                                {
+                                    "categoryId": [
+                                        "73839"
+                                    ],
+                                    "categoryName": [
+                                        "iPods & MP3 Players"
+                                    ]
+                                }
+                            ],
+                            "galleryURL": [
+                                "http://thumbs2.ebaystatic.com/m/mM6obLl3P8cyvmz4CJGyDFA/140.jpg"
+                            ],
+                            "viewItemURL": [
+                                "http://www.ebay.com/itm/Apple-iPod-Touch-6th-Gen-Latest-Space-Gray-16GB-A1574-MP3-iOS-Bundled-USB-Used-/172118216533"
+                            ],
+                            "productId": [
+                                {
+                                    "@type": "ReferenceID",
+                                    "__value__": "216470852"
+                                }
+                            ],
+                            "paymentMethod": [
+                                "PayPal"
+                            ],
+                            "autoPay": [
+                                "true"
+                            ],
+                            "postalCode": [
+                                "80537"
+                            ],
+                            "location": [
+                                "Loveland,CO,USA"
+                            ],
+                            "country": [
+                                "US"
+                            ],
+                            "shippingInfo": [
+                                {
+                                    "shippingServiceCost": [
+                                        {
+                                            "@currencyId": "USD",
+                                            "__value__": "5.0"
+                                        }
+                                    ],
+                                    "shippingType": [
+                                        "Flat"
+                                    ],
+                                    "shipToLocations": [
+                                        "US"
+                                    ],
+                                    "expeditedShipping": [
+                                        "false"
+                                    ],
+                                    "oneDayShippingAvailable": [
+                                        "false"
+                                    ],
+                                    "handlingTime": [
+                                        "1"
+                                    ]
+                                }
+                            ],
+                            "sellingStatus": [
+                                {
+                                    "currentPrice": [
+                                        {
+                                            "@currencyId": "USD",
+                                            "__value__": "159.99"
+                                        }
+                                    ],
+                                    "convertedCurrentPrice": [
+                                        {
+                                            "@currencyId": "USD",
+                                            "__value__": "159.99"
+                                        }
+                                    ],
+                                    "sellingState": [
+                                        "Active"
+                                    ],
+                                    "timeLeft": [
+                                        "P17DT21H58M33S"
+                                    ]
+                                }
+                            ],
+                            "listingInfo": [
+                                {
+                                    "bestOfferEnabled": [
+                                        "false"
+                                    ],
+                                    "buyItNowAvailable": [
+                                        "false"
+                                    ],
+                                    "startTime": [
+                                        "2016-02-29T20:39:31.000Z"
+                                    ],
+                                    "endTime": [
+                                        "2016-03-30T20:44:31.000Z"
+                                    ],
+                                    "listingType": [
+                                        "StoreInventory"
+                                    ],
+                                    "gift": [
+                                        "false"
+                                    ]
+                                }
+                            ],
+                            "returnsAccepted": [
+                                "true"
+                            ],
+                            "condition": [
+                                {
+                                    "conditionId": [
+                                        "3000"
+                                    ],
+                                    "conditionDisplayName": [
+                                        "Used"
+                                    ]
+                                }
+                            ],
+                            "isMultiVariationListing": [
+                                "false"
+                            ],
+                            "topRatedListing": [
+                                "true"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "paginationOutput": [
+                {
+                    "pageNumber": [
+                        "1"
+                    ],
+                    "entriesPerPage": [
+                        "2"
+                    ],
+                    "totalPages": [
+                        "14"
+                    ],
+                    "totalEntries": [
+                        "27"
+                    ]
+                }
+            ],
+            "itemSearchURL": [
+                "http://www.ebay.com/ctg/216470852?_ddo=1&_ipg=2&_pgn=1&_productid=216470852"
+            ]
+        }
+    ]
+}

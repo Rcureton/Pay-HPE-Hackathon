@@ -14,12 +14,14 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.adi.ho.jackie.pricecomparisonapp.EbayAPI.Ebay;
 import com.adi.ho.jackie.pricecomparisonapp.WalmartAPI.Walmart;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,8 +37,9 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private String mImageFullPathAndName = "";
     private String localImagePath = "";
     private static final int OPTIMIZED_LENGTH = 1024;
-    private TextView mWalmartComparison;
+    private TextView mWalmartComparison, mEbayComparison;
     public String mUPCofProduct;
+    public ArrayList<String> mReviews;
 
     private static final String API_KEY = "f3c5459e-f77d-40f6-b53f-43154e4559f9";
     HODClient hodClient = new HODClient(API_KEY, this);
@@ -48,23 +51,42 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mWalmartComparison = (TextView)findViewById(R.id.walmartPriceComparison);
+        mEbayComparison = (TextView)findViewById(R.id.ebayPriceComparison);
         CreateLocalImageFolder();
     }
 
     @Override
     public void requestCompletedWithContent(String response) {
         if (hodApp.equals(HODApps.RECOGNIZE_BARCODES)) {
+
             Log.i("Request completed", response);
             BarcodeRecognitionResponse resp = parser.ParseBarcodeRecognitionResponse(response);
+
             if (resp != null) {
                 mUPCofProduct = resp.barcode.get(0).text;
-                Log.i("Response", "UPC IS: "+mUPCofProduct);
+                Log.i("Response", "UPC IS: " + mUPCofProduct);
 
                 String walmartsPrice = "Product Unavailable";
                 Walmart.WalmartAsyncTask walPrice = new Walmart.WalmartAsyncTask();
                 try{walmartsPrice = walPrice.execute(mUPCofProduct).get().toString();}
                 catch(Throwable e){e.printStackTrace();}
                 mWalmartComparison.setText("Price at Walmart is: $" + walmartsPrice);
+
+                String ebaysPrice = "Product Unavailable";
+                Ebay.EbayAsyncTask ebayPrice = new Ebay.EbayAsyncTask();
+                try{ebaysPrice = ebayPrice.execute(mUPCofProduct).get().toString();}
+                catch(Throwable e){e.printStackTrace();}
+                mEbayComparison.setText("Price on Ebay is: $" + ebaysPrice);
+
+                int walmartIdForReview = 0;
+                Walmart.WalmartIDAsyncTask walId = new Walmart.WalmartIDAsyncTask();
+                try{walmartIdForReview = walId.execute(mUPCofProduct).get();}
+                catch(Throwable e){e.printStackTrace();}
+
+                mReviews.clear();
+                Walmart.WalmartReviewAsyncTask reviewTask = new Walmart.WalmartReviewAsyncTask();
+                try{mReviews = reviewTask.execute(walmartIdForReview).get();}
+                catch(Throwable e){e.printStackTrace();}
             }
         }
     }
@@ -89,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         params.put("file", mImageFullPathAndName);
         hodClient.PostRequest(params, hodApp, HODClient.REQ_MODE.ASYNC);
     }
+
     public void CreateLocalImageFolder()
     {
         if (localImagePath.length() == 0)

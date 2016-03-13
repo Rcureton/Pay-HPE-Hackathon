@@ -82,12 +82,18 @@ public class Ebay {
             try {
                 JSONObject dataObject = new JSONObject(data);
                 JSONArray itemArray= dataObject.optJSONArray("findItemsByProductResponse");
-                JSONArray searchResult = itemArray.optJSONArray(3);
-                JSONArray itemArray2 = searchResult.optJSONArray(1);
-                JSONArray sellingStatusArray = itemArray2.optJSONArray(13);
-                JSONArray currentPriceArray = sellingStatusArray.optJSONArray(0);
-                JSONObject priceObject = currentPriceArray.optJSONObject(0);
-                price = priceObject.optDouble("__value__");
+                JSONObject firstObject = itemArray.optJSONObject(0);
+                JSONArray searchResult = firstObject.optJSONArray("searchResult");
+                if(searchResult!=null){
+                    JSONObject firstObject1 = searchResult.optJSONObject(0);
+                    JSONArray itemArray2 = firstObject1.optJSONArray("item");
+                    JSONObject firstObject2 = itemArray2.optJSONObject(0);
+                    JSONArray sellingStatusArray = firstObject2.optJSONArray("sellingStatus");
+                    JSONObject firstObject3 = sellingStatusArray.optJSONObject(0);
+                    JSONArray currentPriceArray = firstObject3.optJSONArray("currentPrice");
+                    JSONObject priceObject = currentPriceArray.optJSONObject(0);
+                    price = priceObject.optDouble("__value__");}
+                else {price = 0.0;}
 
             } catch (JSONException e) {
 

@@ -176,16 +176,16 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
 
             if (resp != null) {
                 if (resp.barcode.size()>1){
-                        new WalmartMultiBarAsyncTask().execute(resp.barcode);
+                    new WalmartMultiBarAsyncTask().execute(resp.barcode);
 
                 } else {
                     mUPCofProduct = resp.barcode.get(0).text.substring(1);
                     Log.i("Response", "UPC IS: " + mUPCofProduct);
 
                     String walmartsPrice = "Product Unavailable";
-                new WalmartAsyncTask().execute(mUPCofProduct);
-                new EbayAsyncTask().execute(mUPCofProduct);
-                mCard.setVisibility(View.VISIBLE);
+                    new WalmartAsyncTask().execute(mUPCofProduct);
+                    new EbayAsyncTask().execute(mUPCofProduct);
+                    mCard.setVisibility(View.VISIBLE);
 
                     new WalmartAsyncTask().execute(mUPCofProduct);
                     new EbayAsyncTask().execute(mUPCofProduct);
@@ -379,24 +379,25 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                     // let save the new image to our local folder
                     mImageFullPathAndName = SaveImage(mCurrentSelectedBitmap);
                     callHODAPI();
-                }else  if (requestCode == PLACE_PICKER_REQUEST) {
-                    if (resultCode == RESULT_OK) {
-                        Place place = PlacePicker.getPlace(data, this);
-                        String uriString= getUriString(place);
-                        Uri googleMaps= Uri.parse(uriString);
-                        Intent mapIntent= new Intent(Intent.ACTION_VIEW,googleMaps);
-                        mapIntent.setPackage("com.google.android.apps.maps");
+                }
 
-                        if(mapIntent.resolveActivity(getPackageManager()) !=null){
-                            startActivity(mapIntent);
-                        }else{
-                            Toast.makeText(MainActivity.this, "No Maps Installed", Toast.LENGTH_SHORT).show();
-                        }
-                    }
+            }
+
+        } else if (requestCode == PLACE_PICKER_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlacePicker.getPlace(data, this);
+                String uriString = getUriString(place);
+                Uri googleMaps = Uri.parse(uriString);
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, googleMaps);
+                mapIntent.setPackage("com.google.android.apps.maps");
+
+                if (mapIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(mapIntent);
+                } else {
+                    Toast.makeText(MainActivity.this, "No Maps Installed", Toast.LENGTH_SHORT).show();
                 }
             }
         }
-
     }
     private String getUriString(Place place) {
         LatLng latLong= place.getLatLng();
@@ -475,7 +476,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
             mListFromUpc = walmartArrayList;
             mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
-             new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+            new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
             mCard.setVisibility(View.VISIBLE);
             //new WalmartReviewAsyncTask().execute(44465724);
         }
@@ -538,7 +539,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
             mListFromUpc = walmartArrayList;
             mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
-             new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+            new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
             new EbayAsyncTask().execute(mListFromUpc.get(0).getmUPC());
             mCard.setVisibility(View.VISIBLE);
             //new WalmartReviewAsyncTask().execute();

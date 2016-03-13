@@ -14,6 +14,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private Toolbar mToolbar;
     private ActionBar mActionbar;
     private Button mButton;
+    private CardView mCard;
     public String mUPCofProduct;
     public ArrayList<String> mReviews;
     private ArrayList<Walmart> mListFromUpc;
@@ -112,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mListView = (ListView)findViewById(R.id.suggestion_list);
         mAutoCompleteList = new ArrayList<>();
         mAdapter = new ArrayAdapter<String>(MainActivity.this,android.R.layout.simple_list_item_1,mAutoCompleteList);
+        mCard = (CardView)findViewById(R.id.xmlPriceComparison);
         setSupportActionBar(mToolbar);
         mActionbar = getSupportActionBar();
         mActionbar.setTitle("Jackie's Price Hooo");
@@ -155,6 +158,9 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                     Log.i("Response", "UPC IS: " + mUPCofProduct);
 
                     String walmartsPrice = "Product Unavailable";
+                new WalmartAsyncTask().execute(mUPCofProduct);
+                new EbayAsyncTask().execute(mUPCofProduct);
+                mCard.setVisibility(View.VISIBLE);
 
                     new WalmartAsyncTask().execute(mUPCofProduct);
                     new EbayAsyncTask().execute(mUPCofProduct);

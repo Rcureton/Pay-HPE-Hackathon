@@ -102,6 +102,15 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mReviews = new ArrayList<>();
         mListFromUpc = new ArrayList<>();
         CreateLocalImageFolder();
+
+        Button button=(Button)findViewById(R.id.maps);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent= new Intent(MainActivity.this,GooglePlaces.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override

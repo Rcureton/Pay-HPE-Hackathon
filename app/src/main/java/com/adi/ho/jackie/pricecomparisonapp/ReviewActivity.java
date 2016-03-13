@@ -11,10 +11,13 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+
 public class ReviewActivity extends AppCompatActivity {
 
     private ActionBar mActionBar;
     private ImageView mImageView;
+    private ArrayList<String> mReviews;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +26,7 @@ public class ReviewActivity extends AppCompatActivity {
 
         mImageView = (ImageView)findViewById(R.id.background);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        mReviews = getIntent().getStringArrayListExtra(MainActivity.REVIEW_ARRAY_KEY);
         setSupportActionBar(toolbar);
         mActionBar = getSupportActionBar();
         mActionBar.setDisplayHomeAsUpEnabled(true);
@@ -33,6 +37,5 @@ public class ReviewActivity extends AppCompatActivity {
                 .load(R.drawable.cafe)
                 .fit().centerCrop()
                 .into(mImageView);
-
     }
 }

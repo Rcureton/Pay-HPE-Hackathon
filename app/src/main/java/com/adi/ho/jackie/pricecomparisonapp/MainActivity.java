@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private TextView mWalmartComparison, mEbayComparison;
     private Toolbar mToolbar;
     private ActionBar mActionbar;
+    private Button mButton;
     public String mUPCofProduct;
     public ArrayList<String> mReviews;
     private ArrayList<Walmart> mListFromUpc;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private static String walmartLookupUpc = "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=";
     private static String walmartReviewById1 = "http://api.walmartlabs.com/v1/reviews/";
     private static String walmartReviewById2 = "?format=json&apiKey=jcpk6chshjwn5nbq2khnrvm9";
+
     private static String ebayLookupUpc = "http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsByProduct" +
             "&SERVICE-VERSION=1.0.0" +
             "&SECURITY-APPNAME=" + productionAppID +
@@ -77,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             "&RESPONSE-DATA-FORMAT=JSON" +
             "&REST-PAYLOAD" +
             "&keywords=";
+    public static final String REVIEW_ARRAY_KEY = "review";
 
     private static final String API_KEY = "f3c5459e-f77d-40f6-b53f-43154e4559f9";
     HODClient hodClient = new HODClient(API_KEY, this);
@@ -90,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mWalmartComparison = (TextView) findViewById(R.id.walmartPriceComparison);
         mEbayComparison = (TextView) findViewById(R.id.ebayPriceComparison);
         mToolbar = (Toolbar) findViewById(R.id.maintoolbar);
+        mButton = (Button) findViewById(R.id.reviewsButton);
         setSupportActionBar(mToolbar);
         mActionbar = getSupportActionBar();
         mActionbar.setTitle("Jackie's Price Hooo");
@@ -115,7 +120,6 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                 new WalmartAsyncTask().execute(mUPCofProduct);
                 new EbayAsyncTask().execute(mUPCofProduct);
 
-
             }
         } else if (hodApp.equals(HODApps.ANALYZE_SENTIMENT)) {
             Log.i("Request completed", response);
@@ -132,6 +136,17 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                     mEbayComparison.setTextColor(Color.RED);
                 }
             }
+
+            mButton.setVisibility(View.VISIBLE);
+            mButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(MainActivity.this, ReviewActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putStringArrayList(REVIEW_ARRAY_KEY, mReviews);
+                    startActivity(intent);
+                }
+            });
         }
     }
 
@@ -294,13 +309,13 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         }
         reviewTogether = str.toString();
         getSentimentFromReviews(reviewTogether);
-
     }
 
-    private void getSentimentFromReviews(String reviews) {
+
+    private void getSentimentFromReviews(String reviews){
         hodApp = HODApps.ANALYZE_SENTIMENT;
-        Map<String, Object> params = new HashMap<>();
-        params.put("text", reviews);
+        Map<String,Object> params = new HashMap<>();
+        params.put("text",reviews);
         hodClient.PostRequest(params, hodApp, HODClient.REQ_MODE.ASYNC);
     }
 

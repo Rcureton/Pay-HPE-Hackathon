@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         mToolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
         setSupportActionBar(mToolbar);
         mActionbar = getSupportActionBar();
-        mActionbar.setTitle("Jackie's Price Hooo");
+        mActionbar.setTitle("");
         mActionbar.setHomeButtonEnabled(true);
         mReviews = new ArrayList<>();
         mListFromUpc = new ArrayList<>();

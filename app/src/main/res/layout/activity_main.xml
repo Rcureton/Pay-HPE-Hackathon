@@ -45,6 +45,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:layout_below="@id/suggestion_list"
         android:visibility="gone"
         app:cardCornerRadius="10dp"
         app:cardElevation="4dp"
@@ -89,7 +90,6 @@
         android:text="See Reviews"
         android:layout_below="@id/xmlPriceComparison"
         android:layout_margin="16dp"
-        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"/>
 
     <android.support.design.widget.FloatingActionButton

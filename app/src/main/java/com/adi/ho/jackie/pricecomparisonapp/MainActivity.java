@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -19,10 +20,19 @@ import android.widget.Toast;
 import com.adi.ho.jackie.pricecomparisonapp.EbayAPI.Ebay;
 import com.adi.ho.jackie.pricecomparisonapp.WalmartAPI.Walmart;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +55,10 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private ActionBar mActionbar;
     public String mUPCofProduct;
     public ArrayList<String> mReviews;
+    private ArrayList<Walmart> mListFromUpc;
+    private static String walmartLookupUpc = "http://api.walmartlabs.com/v1/items?apiKey=jcpk6chshjwn5nbq2khnrvm9&upc=";
+    private static String walmartReviewById1 = "http://api.walmartlabs.com/v1/reviews/";
+    private static String walmartReviewById2 = "?format=json&apiKey=jcpk6chshjwn5nbq2khnrvm9";
 
     private static final String API_KEY = "f3c5459e-f77d-40f6-b53f-43154e4559f9";
     HODClient hodClient = new HODClient(API_KEY, this);
@@ -55,13 +69,15 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mWalmartComparison = (TextView)findViewById(R.id.walmartPriceComparison);
-        mEbayComparison = (TextView)findViewById(R.id.ebayPriceComparison);
-        mToolbar = (Toolbar)findViewById(R.id.maintoolbar);
+        mWalmartComparison = (TextView) findViewById(R.id.walmartPriceComparison);
+        mEbayComparison = (TextView) findViewById(R.id.ebayPriceComparison);
+        mToolbar = (Toolbar) findViewById(R.id.maintoolbar);
         setSupportActionBar(mToolbar);
         mActionbar = getSupportActionBar();
         mActionbar.setTitle("Jackie's Price Hooo");
         mActionbar.setHomeButtonEnabled(true);
+        mReviews = new ArrayList<>();
+        mListFromUpc = new ArrayList<>();
         CreateLocalImageFolder();
     }
 
@@ -73,30 +89,33 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
             BarcodeRecognitionResponse resp = parser.ParseBarcodeRecognitionResponse(response);
 
             if (resp != null) {
-                mUPCofProduct = resp.barcode.get(0).text;
+                mUPCofProduct = resp.barcode.get(0).text.substring(1);
                 Log.i("Response", "UPC IS: " + mUPCofProduct);
 
                 String walmartsPrice = "Product Unavailable";
-                Walmart.WalmartAsyncTask walPrice = new Walmart.WalmartAsyncTask();
-                try{walmartsPrice = walPrice.execute(mUPCofProduct).get().toString();}
-                catch(Throwable e){e.printStackTrace();}
-                mWalmartComparison.setText("Price at Walmart is: $" + walmartsPrice);
 
-                String ebaysPrice = "Product Unavailable";
-                Ebay.EbayAsyncTask ebayPrice = new Ebay.EbayAsyncTask();
-                try{ebaysPrice = ebayPrice.execute(mUPCofProduct).get().toString();}
-                catch(Throwable e){e.printStackTrace();}
-                mEbayComparison.setText("Price on Ebay is: $" + ebaysPrice);
+                new WalmartAsyncTask().execute(mUPCofProduct);
 
-                int walmartIdForReview = 0;
-                Walmart.WalmartIDAsyncTask walId = new Walmart.WalmartIDAsyncTask();
-                try{walmartIdForReview = walId.execute(mUPCofProduct).get();}
-                catch(Throwable e){e.printStackTrace();}
+//
+//                String ebaysPrice = "Product Unavailable";
+//                Ebay.EbayAsyncTask ebayPrice = new Ebay.EbayAsyncTask();
+//                try{ebaysPrice = ebayPrice.execute(mUPCofProduct).get().toString();}
+//                catch(Throwable e){e.printStackTrace();}
+//                mEbayComparison.setText("Price on Ebay is: $" + ebaysPrice);
 
-                mReviews.clear();
-                Walmart.WalmartReviewAsyncTask reviewTask = new Walmart.WalmartReviewAsyncTask();
-                try{mReviews = reviewTask.execute(walmartIdForReview).get();}
-                catch(Throwable e){e.printStackTrace();}
+//                int walmartIdForReview = 0;
+//                Walmart.WalmartIDAsyncTask walId = new Walmart.WalmartIDAsyncTask();
+//                try{walmartIdForReview = walId.execute(mUPCofProduct).get();}
+
+                //  catch(Throwable e){e.printStackTrace();}
+                if (!mReviews.isEmpty()) {
+                    mReviews.clear();
+                }
+
+
+                if (mReviews.size() > 0) {
+                    //    checkReviewsSentiment(mReviews);
+                }
             }
         }
     }
@@ -117,15 +136,13 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     // loading image part
     private void callHODAPI() {
         hodApp = HODApps.RECOGNIZE_BARCODES;
-        Map<String,Object> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         params.put("file", mImageFullPathAndName);
         hodClient.PostRequest(params, hodApp, HODClient.REQ_MODE.ASYNC);
     }
 
-    public void CreateLocalImageFolder()
-    {
-        if (localImagePath.length() == 0)
-        {
+    public void CreateLocalImageFolder() {
+        if (localImagePath.length() == 0) {
             localImagePath = getFilesDir().getAbsolutePath() + "/orc/";
             File folder = new File(localImagePath);
             boolean success = true;
@@ -136,6 +153,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                 Toast.makeText(this, "Cannot create local folder", Toast.LENGTH_LONG).show();
         }
     }
+
     public Bitmap decodeFile(File file) {
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = false;
@@ -150,6 +168,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         }
         return pic;
     }
+
     public Bitmap rescaleBitmap(Bitmap bm, int newWidth, int newHeight) {
         int width = bm.getWidth();
         int height = bm.getHeight();
@@ -160,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         Bitmap resizedBitmap = Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
         return resizedBitmap;
     }
+
     private Bitmap rotateBitmap(Bitmap pic, int deg) {
         Matrix rotate90DegAntiClock = new Matrix();
         rotate90DegAntiClock.preRotate(deg);
@@ -167,8 +187,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         return newPic;
     }
 
-    private String SaveImage(Bitmap image)
-    {
+    private String SaveImage(Bitmap image) {
         String fileName = localImagePath + "imagetoocr.jpg";
         try {
 
@@ -189,6 +208,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         }
         return fileName;
     }
+
     public void DoTakePhoto(View view) {
         Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
         startActivityForResult(intent, TAKE_PICTURE);
@@ -249,5 +269,126 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
                 }
             }
         }
+    }
+
+    private void checkReviewsSentiment(ArrayList<String> allReviews) {
+        StringBuilder str = new StringBuilder(allReviews.get(0) + " ");
+        String reviewTogether = "";
+        for (int i = 1; i < allReviews.size(); i++) {
+            str.append(allReviews.get(i) + " ");
+        }
+        Log.d("review str", reviewTogether);
+    }
+
+    public class WalmartAsyncTask extends AsyncTask<String, Void, ArrayList<Walmart>> {
+        String data = " ";
+        String price;
+        private ArrayList<Walmart> walmartList;
+
+        public WalmartAsyncTask() {
+            walmartList = new ArrayList<>();
+        }
+
+        @Override
+        protected ArrayList<Walmart> doInBackground(String... urls) {
+
+            try {
+                URL url = new URL(walmartLookupUpc + urls[0]);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                InputStream inputStream = connection.getInputStream();
+                data = getInputData(inputStream);
+
+
+            } catch (Throwable thr) {
+                thr.fillInStackTrace();
+
+            }
+            try {
+                JSONObject dataObject = new JSONObject(data);
+                JSONArray priceArray = dataObject.optJSONArray("items");
+                JSONObject item = priceArray.optJSONObject(0);
+                Walmart walmart = new Walmart();
+                price = item.optString("salePrice", "Product Unavailable");
+                walmart.setmPrice(price);
+                walmart.setmItemId(item.getInt("itemId"));
+                walmartList.add(walmart);
+
+            } catch (JSONException e) {
+
+                e.printStackTrace();
+            }
+            return walmartList;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Walmart> walmartArrayList) {
+            mListFromUpc = walmartArrayList;
+            mWalmartComparison.setText("Price at Walmart is: $" + mListFromUpc.get(0).getmPrice());
+            new WalmartReviewAsyncTask().execute(mListFromUpc.get(0).getmItemId());
+        }
+    }
+
+
+    public class WalmartReviewAsyncTask extends AsyncTask<Integer, Void, ArrayList<String>> {
+        String JSONdata = " ";
+        ArrayList<String> reviews;
+
+        public WalmartReviewAsyncTask() {
+            reviews = new ArrayList<>();
+        }
+
+        @Override
+        protected ArrayList<String> doInBackground(Integer... id) {
+
+            try {
+                URL url = new URL(walmartReviewById1 + id[0] + walmartReviewById2);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+
+                InputStream inputStream = connection.getInputStream();
+                JSONdata = getInputData(inputStream);
+
+
+            } catch (Throwable thr) {
+                thr.fillInStackTrace();
+
+            }
+            try {
+                JSONObject dataObject = new JSONObject(JSONdata);
+                JSONArray reviewArray = dataObject.optJSONArray("reviews");
+                if (reviewArray != null && reviewArray.length() > 0) {
+                    for (int x = 0; x < reviewArray.length(); x++) {
+                        JSONObject item = reviewArray.optJSONObject(x);
+                        reviews.add(item.optString("reviewText", ""));
+                    }
+                }
+
+            } catch (JSONException e) {
+
+                e.printStackTrace();
+            }
+            return reviews;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<String> s) {
+            mReviews = s;
+
+        }
+    }
+
+    private String getInputData(InputStream inputStream) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        String data;
+
+        while ((data = bufferedReader.readLine()) != null) {
+            stringBuilder.append(data);
+        }
+        bufferedReader.close();
+
+        return stringBuilder.toString();
     }
 }

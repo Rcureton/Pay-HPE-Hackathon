@@ -9,7 +9,11 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
+
+import android.support.design.widget.FloatingActionButton;
+
 import android.support.v4.view.MenuItemCompat;
+
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -132,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         });
         CreateLocalImageFolder();
 
-        Button button=(Button)findViewById(R.id.maps);
+        FloatingActionButton button=(FloatingActionButton)findViewById(R.id.maps);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

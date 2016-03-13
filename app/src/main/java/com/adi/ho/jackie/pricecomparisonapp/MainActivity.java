@@ -7,8 +7,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -37,7 +39,10 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
     private String mImageFullPathAndName = "";
     private String localImagePath = "";
     private static final int OPTIMIZED_LENGTH = 1024;
+
     private TextView mWalmartComparison, mEbayComparison;
+    private Toolbar mToolbar;
+    private ActionBar mActionbar;
     public String mUPCofProduct;
     public ArrayList<String> mReviews;
 
@@ -52,6 +57,11 @@ public class MainActivity extends AppCompatActivity implements IHODClientCallbac
         setContentView(R.layout.activity_main);
         mWalmartComparison = (TextView)findViewById(R.id.walmartPriceComparison);
         mEbayComparison = (TextView)findViewById(R.id.ebayPriceComparison);
+        mToolbar = (Toolbar)findViewById(R.id.maintoolbar);
+        setSupportActionBar(mToolbar);
+        mActionbar = getSupportActionBar();
+        mActionbar.setTitle("Jackie's Price Hooo");
+        mActionbar.setHomeButtonEnabled(true);
         CreateLocalImageFolder();
     }
 
